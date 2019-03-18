@@ -31,12 +31,15 @@ def train(
 
     # Configure run
     train_path = parse_data_cfg(data_cfg)['train']
+    extra_train_path = parse_data_cfg(data_cfg)['extratrain']
 
     # Initialize model
     model = Darknet(cfg, img_size)
 
     # Get dataloader
     dataloader = LoadImagesAndLabels(train_path, batch_size, img_size, multi_scale=multi_scale, augment=True)
+
+    Extra_dataloader = LoadImagesAndLabels(extra_train_path, batch_size, img_size, multi_scale=multi_scale, augment=True)
 
     lr0 = 0.001
     cutoff = -1  # backbone reaches to cutoff layer
@@ -99,7 +102,7 @@ def train(
         # scheduler.step()
 
         # Update scheduler (manual)  at 0, 54, 61 epochs to 1e-3, 1e-4, 1e-5
-        if epoch > 50:
+        if epoch > epochs/2:
             lr = lr0 / 10
         else:
             lr = lr0
@@ -115,7 +118,15 @@ def train(
         ui = -1
         rloss = defaultdict(float)  # running loss
         optimizer.zero_grad()
+
+
         for i, (imgs, targets, _, _) in enumerate(dataloader):
+
+
+            if i % 10:
+                dataloader_iter = iter(Extra_dataloader)
+                imgs, targets, _, _ = next(dataloader_iter)
+
             if sum([len(x) for x in targets]) < 1:  # if no targets continue
                 continue
 
@@ -178,9 +189,10 @@ def train(
             file.write(s + '%11.3g' * 3 % (mAP, P, R) + '\n')
 
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs', type=int, default=100, help='number of epochs')
+    parser.add_argument('--epochs', type=int, default=10, help='number of epochs')
     parser.add_argument('--batch-size', type=int, default=16, help='size of each image batch')
     parser.add_argument('--accumulated-batches', type=int, default=1, help='number of batches before optimizer step')
     parser.add_argument('--cfg', type=str, default='cfg/yolov3.cfg', help='cfg file path')

@@ -1,6 +1,7 @@
-classes=80
-train=../coco/trainvalno5k.txt
-valid=../coco/5k.txt
-names=data/coco.names
+classes=3
+train=data/coco/trainbottle.txt
+valid=data/coco/RealvalData.txt
+extratrain=data/coco/RealtrainData.txt
+names=data/bottle.names
 backup=backup/
 eval=coco
